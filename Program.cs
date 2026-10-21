@@ -236,6 +236,22 @@ static class Program
             p4.ExtraSections.AddRange(lenient.OtherSections);
             var reexport = SphereScp.Export(p4, p4.Regions);
             Check("COMMENT re-emitted on export", reexport.Contains("[COMMENT AREADEF a_disabled]"));
+            // the preamble has no section of its own: below the regions Sphere would read
+            // VERSION= as a key of the last AREADEF
+            int verAt = reexport.IndexOf("VERSION=X", StringComparison.Ordinal);
+            int firstSection = reexport.IndexOf("[AREADEF", StringComparison.Ordinal);
+            Check("VERSION stays above the first section", verAt >= 0 && verAt < firstSection,
+                $"VERSION at {verAt}, first section at {firstSection}");
+
+            // 4.1 a comment after the section header survives the round trip, but only as a comment
+            var hdr = SphereScp.Import("[AREADEF a_marsh] //inside the jungle\nNAME=Marsh\nRECT=1,1,3,3,0\n", true);
+            Check("header comment imported", hdr.Regions.Count == 1 && hdr.Regions[0].HeaderComment == "//inside the jungle",
+                hdr.Regions.FirstOrDefault()?.HeaderComment ?? "no region");
+            var p5 = new Project();
+            p5.Regions.AddRange(hdr.Regions);
+            Check("header comment re-emitted", SphereScp.Export(p5, p5.Regions).Contains("[AREADEF A_MARSH] //inside the jungle"));
+            p5.Regions[0].HeaderComment = "\n[FUNCTION f_backdoor]";
+            Check("non-comment header suffix dropped", !SphereScp.Export(p5, p5.Regions).Contains("[FUNCTION"));
 
             // 4.5 compact export (the server-side regions.scp): functional lines only, no banner
             var compact = SphereScp.ExportCompact(p.Regions);

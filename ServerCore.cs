@@ -662,6 +662,7 @@ public class ServerCore
         r.Kind = r.Kind == null ? null : OneLine(r.Kind, 32);
         r.ServuoType = r.ServuoType == null ? null : OneLine(r.ServuoType, 64);
         r.Music = r.Music == null ? null : OneLine(r.Music, 64);
+        r.HeaderComment = r.HeaderComment == null ? null : OneLine(r.HeaderComment, 256);
         r.Priority = Math.Clamp(r.Priority, 0, 32767);
         r.Extra ??= new List<string>();
         if (r.Extra.Count > MaxExtraLines) return $"too many extra lines ({r.Extra.Count})";
