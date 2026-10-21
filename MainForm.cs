@@ -568,7 +568,7 @@ public class MainForm : Form
             DefName = dn, Name = r.Name + " copy", Kind = r.Kind,
             Events = r.Events, Flags = r.Flags, Group = r.Group,
             PX = r.PX, PY = r.PY, PZ = r.PZ,
-            Extra = new List<string>(r.Extra), Comments = new List<string>(r.Comments), HeaderComment = r.HeaderComment,
+            Extra = new List<string>(r.Extra), Comments = new List<string>(r.Comments), HeaderComment = r.HeaderComment, PComment = r.PComment,
             Rects = r.Rects.Select(t => t.Clone()).ToList(),
         };
         copy.Color = Palette.Next(project.Regions.Count);

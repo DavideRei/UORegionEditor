@@ -64,6 +64,7 @@ public class RegionDef
     public List<string> Extra { get; set; } = new();         // preserved lines (TAG.* etc.)
     public List<string> Comments { get; set; } = new();      // comment lines above the section
     public string HeaderComment { get; set; } = "";          // "//note" after the [AREADEF X] header
+    public string PComment { get; set; } = "";               // "//note" after the P= values
     // ServUO Data/Regions.xml extras. Ignored by the Sphere and CentrED exports, the way
     // EVENTS/FLAGS are ignored by ServUO - each server gets what it actually understands.
     public string ServuoType { get; set; } = "";     // TownRegion, GuardedRegion, DungeonRegion...

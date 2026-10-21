@@ -253,6 +253,15 @@ static class Program
             p5.Regions[0].HeaderComment = "\n[FUNCTION f_backdoor]";
             Check("non-comment header suffix dropped", !SphereScp.Export(p5, p5.Regions).Contains("[FUNCTION"));
 
+            // 4.2 same for a comment after the P= values, which are rebuilt from numbers on export
+            var pcm = SphereScp.Import("[AREADEF a_town]\nNAME=Town\nP=1578,1909,0,0 //1430, 1880\nRECT=1,1,3,3,0\n", true);
+            Check("P comment imported", pcm.Regions.Count == 1 && pcm.Regions[0].PComment == "//1430, 1880" &&
+                pcm.Regions[0].PX == 1578 && pcm.Regions[0].PY == 1909 && pcm.Regions[0].MapPlane == 0,
+                pcm.Regions.FirstOrDefault()?.PComment ?? "no region");
+            var p6 = new Project();
+            p6.Regions.AddRange(pcm.Regions);
+            Check("P comment re-emitted", SphereScp.Export(p6, p6.Regions).Contains("P=1578,1909,0,0 //1430, 1880"));
+
             // 4.5 compact export (the server-side regions.scp): functional lines only, no banner
             var compact = SphereScp.ExportCompact(p.Regions);
             Check("compact export", compact.Contains("RECT=10,10,20,20,0") && compact.Contains("[AREADEF A_TEST]")

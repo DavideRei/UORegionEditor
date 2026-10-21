@@ -63,13 +63,13 @@ public static class SphereScp
             if (r.Rects.Count == 0) continue;   // a RECT-less areadef is broken; skip empties
             foreach (var c in r.Comments) sb.AppendLine(c);
             string kind = (r.Kind ?? "AREADEF").StartsWith("ROOMDEF", StringComparison.OrdinalIgnoreCase) ? "ROOMDEF" : "AREADEF";
-            sb.AppendLine($"[{kind} {SanitizeDefName(r.DefName, idx).ToUpperInvariant()}]{HeaderCommentSuffix(r.HeaderComment)}");
+            sb.AppendLine($"[{kind} {SanitizeDefName(r.DefName, idx).ToUpperInvariant()}]{CommentSuffix(r.HeaderComment)}");
             if (!string.IsNullOrWhiteSpace(r.Events)) sb.AppendLine($"EVENTS={r.Events}");
             sb.AppendLine($"NAME={r.Name}");
             if (!string.IsNullOrWhiteSpace(r.Group)) sb.AppendLine($"GROUP={r.Group}");
             if (!string.IsNullOrWhiteSpace(r.Flags)) sb.AppendLine($"FLAGS={r.Flags}");
             var (px, py) = r.EffectiveP();
-            sb.AppendLine($"P={px},{py},{r.PZ},{r.MapPlane}");
+            sb.AppendLine($"P={px},{py},{r.PZ},{r.MapPlane}{CommentSuffix(r.PComment)}");
             sb.AppendLine($"// {DateTime.Now:yyyy-MM-dd} UORegionEditor: {r.Rects.Count} boxes{(add == 1 ? " (RECT right/bottom edges exclusive -> +1)" : "")}");
             foreach (var rc in r.Rects)
                 sb.AppendLine($"RECT={rc.X1},{rc.Y1},{rc.X2 + add},{rc.Y2 + add},{r.MapPlane}");
@@ -97,9 +97,9 @@ public static class SphereScp
         return first != null && !first.StartsWith("[");
     }
 
-    // "[AREADEF A_X] //note": only a single-line // comment goes back after the header,
-    // anything else there could open a new script line
-    static string HeaderCommentSuffix(string comment)
+    // "[AREADEF A_X] //note", "P=1,2,0,0 //note": only a single-line // comment goes
+    // back after the header or the P line, anything else there could open a new script line
+    static string CommentSuffix(string comment)
     {
         var c = (comment ?? "").Trim();
         if (c.Length == 0 || !c.StartsWith("//") || c.Contains('\n') || c.Contains('\r')) return "";
@@ -250,6 +250,9 @@ public static class SphereScp
                 case "GROUP": cur.Group = val; break;
                 case "P":
                 {
+                    // P is rebuilt from its numbers on export: keep a trailing //comment aside
+                    int cm = val.IndexOf("//", StringComparison.Ordinal);
+                    if (cm >= 0) { cur.PComment = val.Substring(cm).Trim(); val = val.Substring(0, cm); }
                     var a = SplitInts(val);
                     if (a.Count >= 2)
                     {
